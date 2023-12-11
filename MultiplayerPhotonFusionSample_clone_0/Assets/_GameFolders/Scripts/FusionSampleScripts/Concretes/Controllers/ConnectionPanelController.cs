@@ -35,10 +35,13 @@ namespace MultiplayerPhotonFusionSample.Controllers
             _hostButton.SetActive(false);
             _joinButton.SetActive(false);
             
-            WaitingTextTask(true);
+            _cancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _cancellationTokenSource.Token;
+
+            WaitingTextTask(true, cancellationToken);
 
             await GameManager.Instance.NetworkManager.StartGameAsync(GameMode.Host,
-                SessionCodeGeneratorHelper.Generate());
+                SessionCodeGeneratorHelper.Generate(), cancellationToken);
 
             await UniTask.WaitForSeconds(1f);
             _isCancel = true;
@@ -53,9 +56,11 @@ namespace MultiplayerPhotonFusionSample.Controllers
             _enterButton.SetActive(false);
             _backButton.SetActive(false);
             
-            WaitingTextTask(false);
-
-            await GameManager.Instance.NetworkManager.StartGameAsync(GameMode.Client, _roomCodeInputField.text);
+            var cancellationToken = _cancellationTokenSource.Token;
+            
+            WaitingTextTask(false,cancellationToken);
+            
+            await GameManager.Instance.NetworkManager.StartGameAsync(GameMode.Client, _roomCodeInputField.text,cancellationToken);
 
             await UniTask.WaitForSeconds(1f);
             _isCancel = true;
@@ -66,6 +71,7 @@ namespace MultiplayerPhotonFusionSample.Controllers
         public void OnCancelButtonClicked()
         {
             _infoText.text = string.Empty;
+            _cancellationTokenSource.Cancel();
             SetDefaultState();
         }
 
@@ -95,19 +101,19 @@ namespace MultiplayerPhotonFusionSample.Controllers
             _infoText.text = string.Empty;
         }
         
-        private async void WaitingTextTask(bool isHost)
+        private async void WaitingTextTask(bool isHost,CancellationToken cancellationToken)
         {
             while (true)
             {
                 _infoText.text = isHost ? _hostWaitingMessage : _clientWaitingMessage;
             
-                await UniTask.WaitForSeconds(_timeToChangeDot);
+                await UniTask.WaitForSeconds(_timeToChangeDot, cancellationToken:cancellationToken);
                 _infoText.text += ".";
-                await UniTask.WaitForSeconds(_timeToChangeDot);
+                await UniTask.WaitForSeconds(_timeToChangeDot, cancellationToken:cancellationToken);
                 _infoText.text += ".";
-                await UniTask.WaitForSeconds(_timeToChangeDot);
+                await UniTask.WaitForSeconds(_timeToChangeDot, cancellationToken:cancellationToken);
                 _infoText.text += ".";
-                await UniTask.WaitForSeconds(_timeToChangeDot);
+                await UniTask.WaitForSeconds(_timeToChangeDot, cancellationToken:cancellationToken);
                 _infoText.text = _infoText.text.Remove(_infoText.text.Length - 3);
 
                 if (_isCancel)

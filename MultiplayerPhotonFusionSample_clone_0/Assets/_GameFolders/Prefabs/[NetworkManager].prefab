@@ -44,4 +44,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e9b0ec3e6d0d20446b90539178f87c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  roomCode: Room1
+  _roomCode: 
+  _networkRunnerPrefab: {fileID: 1302904497371179805, guid: 656cbaa1edc973f4693a9428334b7da7,
+    type: 3}
