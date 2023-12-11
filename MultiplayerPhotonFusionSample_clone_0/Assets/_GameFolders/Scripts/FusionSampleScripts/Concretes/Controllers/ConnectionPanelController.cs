@@ -22,6 +22,7 @@ namespace MultiplayerPhotonFusionSample.Controllers
         string _hostWaitingMessage = "Waiting to create game";
         string _clientWaitingMessage = "Waiting to join game";
         float _timeToChangeDot = 0.5f;
+        bool _isCancel;
 
          private void Start()
         {
@@ -38,15 +39,28 @@ namespace MultiplayerPhotonFusionSample.Controllers
 
             await GameManager.Instance.NetworkManager.StartGameAsync(GameMode.Host,
                 SessionCodeGeneratorHelper.Generate());
+
+            await UniTask.WaitForSeconds(1f);
+            _isCancel = true;
+            
+            if(_cancelButton != null) _cancelButton.SetActive(false);
         }
         
         public async void OnClientEnteredButtonClicked()
         {
-            //cancelButton.SetActive(true);
-            //roomCodeInputField.SetActive(false);
-            //enterButton.SetActive(false);
-            //backButton.SetActive(false);
+            _cancelButton.SetActive(true);
+            _roomCodeInputField.gameObject.SetActive(false);
+            _enterButton.SetActive(false);
+            _backButton.SetActive(false);
             
+            WaitingTextTask(false);
+
+            await GameManager.Instance.NetworkManager.StartGameAsync(GameMode.Client, _roomCodeInputField.text);
+
+            await UniTask.WaitForSeconds(1f);
+            _isCancel = true;
+            
+            if(_cancelButton != null) _cancelButton.SetActive(false);
         }
         
         public void OnCancelButtonClicked()
@@ -95,6 +109,12 @@ namespace MultiplayerPhotonFusionSample.Controllers
                 _infoText.text += ".";
                 await UniTask.WaitForSeconds(_timeToChangeDot);
                 _infoText.text = _infoText.text.Remove(_infoText.text.Length - 3);
+
+                if (_isCancel)
+                {
+                    _infoText.SetText(string.Empty);
+                    break;
+                }
             }
         }
     }
