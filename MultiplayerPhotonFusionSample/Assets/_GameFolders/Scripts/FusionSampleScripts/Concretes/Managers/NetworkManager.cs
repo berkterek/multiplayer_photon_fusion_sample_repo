@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using Fusion;
 using Fusion.Sockets;
 using UnityEngine;
@@ -8,7 +9,7 @@ namespace MultiplayerPhotonFusionSample.Managers
 {
     public class NetworkManager : MonoBehaviour, INetworkRunnerCallbacks
     {
-        [SerializeField] string roomCode;
+        [SerializeField] string _roomCode;
         
         NetworkRunner _networkRunner;
         
@@ -78,8 +79,9 @@ namespace MultiplayerPhotonFusionSample.Managers
         {
         }
 
-        private async void StartGame(GameMode gameMode)
+        public async UniTask StartGameAsync(GameMode gameMode, string sessionCode)
         {
+            _roomCode = sessionCode;
             _networkRunner = gameObject.AddComponent<NetworkRunner>();
             _networkRunner.ProvideInput = true;
 
@@ -89,7 +91,7 @@ namespace MultiplayerPhotonFusionSample.Managers
             var result = await _networkRunner.StartGame(new StartGameArgs()
             {
                 GameMode = gameMode,
-                SessionName = roomCode,
+                SessionName = _roomCode,
                 Scene = SceneManager.GetActiveScene().buildIndex,
                 SceneManager = gameObject.AddComponent<NetworkSceneManagerDefault>()
             });
@@ -97,23 +99,12 @@ namespace MultiplayerPhotonFusionSample.Managers
             if (result.Ok)
             {
                 Debug.Log(tryHost ? "Game started successfully":"Game joined successfully");
+                Debug.Log($"Room Code => {_roomCode}");
             }
             else
             {
                 Debug.LogError($"Game failed to {(tryHost ? "start" : "join")} with result: {result.ShutdownReason}");   
             }
-        }
-
-        [ContextMenu(nameof(StartWithHost))]
-        private void StartWithHost()
-        {
-            StartGame(GameMode.Host);
-        }
-
-        [ContextMenu(nameof(StartWithClient))]
-        private void StartWithClient()
-        {
-            StartGame(GameMode.Client);
         }
     }    
 }
